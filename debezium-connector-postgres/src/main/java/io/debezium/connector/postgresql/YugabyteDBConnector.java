@@ -64,7 +64,7 @@ public class YugabyteDBConnector extends RelationalBaseSourceConnector {
 
     protected List<Map<String, String>> getTaskConfigsForParallelStreaming(List<String> slotNames,
                                                                            List<String> publicationNames,
-                                                                           List<String> slotRanges) {
+                                                                           List<String> ranges) {
         List<Map<String, String>> taskConfigs = new ArrayList<>();
 
         for (int i = 0; i < slotNames.size(); ++i) {
@@ -73,7 +73,7 @@ public class YugabyteDBConnector extends RelationalBaseSourceConnector {
             taskProps.put(PostgresConnectorConfig.TASK_ID.name(), String.valueOf(i));
             taskProps.put(PostgresConnectorConfig.SLOT_NAME.name(), slotNames.get(i));
             taskProps.put(PostgresConnectorConfig.PUBLICATION_NAME.name(), publicationNames.get(i));
-            taskProps.put(PostgresConnectorConfig.STREAM_PARAMS.name(), "hash_range=" + slotRanges.get(i));
+            taskProps.put(PostgresConnectorConfig.STREAM_PARAMS.name(), "hash_range=" + ranges.get(i));
 
             taskConfigs.add(taskProps);
         }
@@ -97,13 +97,13 @@ public class YugabyteDBConnector extends RelationalBaseSourceConnector {
 
             List<String> slotNames = connectorConfig.getSlotNames();
             List<String> publicationNames = connectorConfig.getPublicationNames();
-            List<String> slotRanges = connectorConfig.getSlotRanges();
+            List<String> ranges = connectorConfig.getSlotRanges();
 
             YBValidate.slotAndPublicationsAreEqual(slotNames, publicationNames);
-            YBValidate.slotRangesMatchSlotNames(slotNames, slotRanges);
-            YBValidate.completeRangesProvided(slotRanges);
+            YBValidate.slotRangesMatchSlotNames(slotNames, ranges);
+            YBValidate.completeRangesProvided(ranges);
 
-            return getTaskConfigsForParallelStreaming(slotNames, publicationNames, slotRanges);
+            return getTaskConfigsForParallelStreaming(slotNames, publicationNames, ranges);
         }
 
         if (props.containsKey(PostgresConnectorConfig.SNAPSHOT_MODE.name())

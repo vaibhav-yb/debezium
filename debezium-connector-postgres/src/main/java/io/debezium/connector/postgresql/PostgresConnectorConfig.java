@@ -747,14 +747,12 @@ public class PostgresConnectorConfig extends RelationalDatabaseConnectorConfig {
             .withImportance(Importance.LOW)
             .withDescription("Comma separated values for multiple slot names");
 
-    // TODO: Add validation that this is equal to the slot names.
     public static final Field PUBLICATION_NAMES = Field.create("publication.names")
             .withDisplayName("Publication names for parallel consumption")
             .withImportance(Importance.LOW)
             .withDescription("Comma separated values for multiple publication names");
 
-    // TODO: Add validation on the number of provided ranges.
-    public static final Field SLOT_RANGES = Field.create("slot.ranges")
+    public static final Field RANGES = Field.create("ranges")
             .withDisplayName("Ranges on which a slot is supposed to operate")
             .withImportance(Importance.LOW)
             .withDescription("Semi-colon separated values for hash ranges to be polled by tasks.");
@@ -1311,7 +1309,7 @@ public class PostgresConnectorConfig extends RelationalDatabaseConnectorConfig {
     }
 
     public List<String> getSlotRanges() {
-        return List.of(getConfig().getString(SLOT_RANGES).trim().split(";"));
+        return List.of(getConfig().getString(RANGES).trim().split(";"));
     }
 
     @Override
