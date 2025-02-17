@@ -70,7 +70,7 @@ public class YugabyteDBConnector extends RelationalBaseSourceConnector {
         for (int i = 0; i < slotNames.size(); ++i) {
             Map<String, String> taskProps = new HashMap<>(this.props);
 
-            taskProps.put(PostgresConnectorConfig.TASK_ID.name(), String.valueOf(i));
+            taskProps.put(PostgresConnectorConfig.TASK_ID, String.valueOf(i));
             taskProps.put(PostgresConnectorConfig.SLOT_NAME.name(), slotNames.get(i));
             taskProps.put(PostgresConnectorConfig.PUBLICATION_NAME.name(), publicationNames.get(i));
             taskProps.put(PostgresConnectorConfig.STREAM_PARAMS.name(), "hash_range=" + ranges.get(i));
@@ -151,7 +151,7 @@ public class YugabyteDBConnector extends RelationalBaseSourceConnector {
         for (int i = 0; i < maxTasks; ++i) {
             Map<String, String> taskProps = new HashMap<>(this.props);
 
-            taskProps.put(PostgresConnectorConfig.TASK_ID.name(), String.valueOf(i));
+            taskProps.put(PostgresConnectorConfig.TASK_ID, String.valueOf(i));
 
             long lowerBound = i * rangeSize;
             long upperBound = (i == maxTasks - 1) ? upperBoundExclusive - 1 : (lowerBound + rangeSize - 1);
