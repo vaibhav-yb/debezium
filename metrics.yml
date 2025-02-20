@@ -48,6 +48,14 @@ rules:
       plugin: "$1"
       name: "$3"
       context: "$2"
+  - pattern: "debezium.([^:]+)<type=connector-metrics, server=([^,]+), task=([^,]+), context=([^>]+)>([^:]+), partition=([^>]+)>([^:]+)"
+    name: "debezium_metrics_$6"
+    labels:
+      plugin: "$1"
+      name: "$2"
+      task: "$3"
+      context: "$4"
+      partition: "$5"
   
   #kafka.connect:type=task-error-metrics,connector="{connector}",task="{task}"
   #kafka.connect:type=source-task-metrics,connector="{connector}",task="{task}"

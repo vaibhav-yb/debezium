@@ -49,7 +49,7 @@ public class YugabyteDBMetrics {
      * The method is intentionally synchronized to prevent preemption between registration and unregistration.
      */
     public synchronized void register() {
-
+        LOGGER.info("registering metric with name {}", name);
         JmxUtils.registerMXBean(name, this);
         // If the old metrics MBean is present then the connector will try to unregister it
         // upon shutdown.
