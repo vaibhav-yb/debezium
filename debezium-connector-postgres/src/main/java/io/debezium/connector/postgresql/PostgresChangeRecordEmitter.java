@@ -214,6 +214,16 @@ public class PostgresChangeRecordEmitter extends RelationalChangeRecordEmitter<P
     }
 
     @Override
+    protected void emitCreateRecord(Receiver<PostgresPartition> receiver, TableSchema tableSchema) throws InterruptedException {
+        Object[] newColumnValues = getNewColumnValues();
+        Struct newKey = tableSchema.keyFromColumnData(newColumnValues);
+
+        LOGGER.info("Emitting key: {}", newKey.toString());
+
+        super.emitCreateRecord(receiver, tableSchema);
+    }
+
+    @Override
     protected void emitUpdateRecord(Receiver<PostgresPartition> receiver, TableSchema tableSchema) throws InterruptedException {
         Object[] oldColumnValues = getOldColumnValues();
         Object[] newColumnValues = getNewColumnValues();

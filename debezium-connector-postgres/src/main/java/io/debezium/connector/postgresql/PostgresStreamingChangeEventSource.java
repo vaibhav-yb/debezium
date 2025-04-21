@@ -384,7 +384,7 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
         }
         // DML event
         else {
-            LOGGER.trace("Processing DML event with lsn {} and lastCompletelyProcessedLsn {}", lsn, lastCompletelyProcessedLsn);
+            LOGGER.info("Processing DML event with lsn {} and lastCompletelyProcessedLsn {}", lsn, lastCompletelyProcessedLsn);
             ++recordCount;
 
             TableId tableId = null;
