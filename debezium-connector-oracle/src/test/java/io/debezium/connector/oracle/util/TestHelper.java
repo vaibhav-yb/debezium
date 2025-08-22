@@ -5,11 +5,7 @@
  */
 package io.debezium.connector.oracle.util;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -23,7 +19,6 @@ import org.infinispan.client.hotrod.impl.ConfigurationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.debezium.DebeziumException;
 import io.debezium.config.CommonConnectorConfig;
 import io.debezium.config.Configuration;
 import io.debezium.config.Field;
@@ -31,15 +26,15 @@ import io.debezium.connector.oracle.OracleConnection;
 import io.debezium.connector.oracle.OracleConnectorConfig;
 import io.debezium.connector.oracle.OracleConnectorConfig.ConnectorAdapter;
 import io.debezium.connector.oracle.OracleConnectorConfig.LogMiningBufferType;
+import io.debezium.connector.oracle.OracleConnectorConfig.LogMiningStrategy;
 import io.debezium.connector.oracle.Scn;
-import io.debezium.connector.oracle.logminer.processor.infinispan.CacheProvider;
-import io.debezium.connector.oracle.rest.DebeziumOracleConnectorResourceIT;
+import io.debezium.connector.oracle.logminer.processor.CacheProvider;
+import io.debezium.embedded.async.AsyncEmbeddedEngine;
 import io.debezium.jdbc.JdbcConfiguration;
 import io.debezium.storage.file.history.FileSchemaHistory;
-import io.debezium.storage.kafka.history.KafkaSchemaHistory;
 import io.debezium.testing.testcontainers.ConnectorConfiguration;
 import io.debezium.testing.testcontainers.OracleContainer;
-import io.debezium.testing.testcontainers.testhelper.RestExtensionTestInfrastructure;
+import io.debezium.testing.testcontainers.testhelper.TestInfrastructureHelper;
 import io.debezium.util.Strings;
 import io.debezium.util.Testing;
 
@@ -160,9 +155,6 @@ public class TestHelper {
             builder.withDefault(OracleConnectorConfig.OLR_PORT, OPENLOGREPLICATOR_PORT);
         }
         else {
-            // Tests will always use the online catalog strategy due to speed.
-            builder.withDefault(OracleConnectorConfig.LOG_MINING_STRATEGY, "online_catalog");
-
             final Boolean readOnly = Boolean.parseBoolean(System.getProperty(OracleConnectorConfig.LOG_MINING_READ_ONLY.name()));
             if (readOnly) {
                 builder.with(OracleConnectorConfig.LOG_MINING_READ_ONLY, readOnly);
@@ -179,6 +171,15 @@ public class TestHelper {
                     builder.with("log.mining.buffer." + ConfigurationProperties.AUTH_PASSWORD, INFINISPAN_PASS);
                 }
             }
+            else if (bufferType.isEhcache()) {
+                final int cacheSize = 1024000000; // 1GB for default
+                builder.with(OracleConnectorConfig.LOG_MINING_BUFFER_TYPE, bufferTypeName);
+                builder.with(OracleConnectorConfig.LOG_MINING_BUFFER_EHCACHE_GLOBAL_CONFIG, getEhcacheGlobalCacheConfig());
+                builder.with(OracleConnectorConfig.LOG_MINING_BUFFER_EHCACHE_TRANSACTIONS_CONFIG, getEhcacheBasicCacheConfig(cacheSize));
+                builder.with(OracleConnectorConfig.LOG_MINING_BUFFER_EHCACHE_PROCESSED_TRANSACTIONS_CONFIG, getEhcacheBasicCacheConfig(cacheSize));
+                builder.with(OracleConnectorConfig.LOG_MINING_BUFFER_EHCACHE_SCHEMA_CHANGES_CONFIG, getEhcacheBasicCacheConfig(cacheSize));
+                builder.with(OracleConnectorConfig.LOG_MINING_BUFFER_EHCACHE_EVENTS_CONFIG, getEhcacheBasicCacheConfig(cacheSize));
+            }
             builder.withDefault(OracleConnectorConfig.LOG_MINING_BUFFER_DROP_ON_STOP, true);
         }
 
@@ -193,7 +194,20 @@ public class TestHelper {
         return builder.with(CommonConnectorConfig.TOPIC_PREFIX, SERVER_NAME)
                 .with(OracleConnectorConfig.SCHEMA_HISTORY, FileSchemaHistory.class)
                 .with(FileSchemaHistory.FILE_PATH, SCHEMA_HISTORY_PATH)
-                .with(OracleConnectorConfig.INCLUDE_SCHEMA_CHANGES, false);
+                .with(OracleConnectorConfig.INCLUDE_SCHEMA_CHANGES, false)
+                .with(AsyncEmbeddedEngine.TASK_MANAGEMENT_TIMEOUT_MS, 90_000)
+                .with(OracleConnectorConfig.SNAPSHOT_DATABASE_ERRORS_MAX_RETRIES, 3);
+    }
+
+    public static String getEhcacheGlobalCacheConfig() {
+        return "<persistence directory=\"./target/data\"/>";
+    }
+
+    public static String getEhcacheBasicCacheConfig(int sizeBytes) {
+        return "<resources>" +
+                "<heap unit=\"entries\">512</heap>" +
+                "<disk unit=\"B\">" + sizeBytes + "</disk>" +
+                "</resources>";
     }
 
     /**
@@ -253,7 +267,7 @@ public class TestHelper {
     /**
      * Returns a configuration builder based on the test schema and user account settings.
      */
-    private static Configuration.Builder testConfig() {
+    public static Configuration.Builder testConfig() {
         JdbcConfiguration jdbcConfiguration = testJdbcConfig();
         Configuration.Builder builder = Configuration.create();
 
@@ -305,6 +319,15 @@ public class TestHelper {
      */
     public static OracleConnection testConnection() {
         Configuration config = testConfig().build();
+        Configuration jdbcConfig = config.subset(DATABASE_PREFIX, true);
+        return createConnection(config, JdbcConfiguration.adapt(jdbcConfig), false);
+    }
+
+    /**
+     * Return a test connection that is suitable for performing test database changes in tests.
+     */
+    public static OracleConnection testConnection(Configuration config) {
+
         Configuration jdbcConfig = config.subset(DATABASE_PREFIX, true);
         return createConnection(config, JdbcConfiguration.adapt(jdbcConfig), false);
     }
@@ -371,7 +394,7 @@ public class TestHelper {
         Configuration jdbcConfig = config.subset(DATABASE_PREFIX, true);
 
         try (OracleConnection jdbcConnection = new OracleConnection(JdbcConfiguration.adapt(jdbcConfig))) {
-            if ((new OracleConnectorConfig(defaultConfig().build())).getPdbName() != null) {
+            if (!Strings.isNullOrEmpty((new OracleConnectorConfig(defaultConfig().build())).getPdbName())) {
                 jdbcConnection.resetSessionToCdb();
             }
             jdbcConnection.execute("ALTER SYSTEM SWITCH LOGFILE");
@@ -386,7 +409,7 @@ public class TestHelper {
         Configuration jdbcConfig = config.subset(DATABASE_PREFIX, true);
 
         try (OracleConnection jdbcConnection = new OracleConnection(JdbcConfiguration.adapt(jdbcConfig))) {
-            if ((new OracleConnectorConfig(defaultConfig().build())).getPdbName() != null) {
+            if (!Strings.isNullOrEmpty((new OracleConnectorConfig(defaultConfig().build())).getPdbName())) {
                 jdbcConnection.resetSessionToCdb();
             }
             return jdbcConnection.queryAndMap("SELECT COUNT(GROUP#) FROM V$LOG", rs -> {
@@ -536,6 +559,17 @@ public class TestHelper {
         return (s == null || s.length() == 0) ? ConnectorAdapter.LOG_MINER : ConnectorAdapter.parse(s);
     }
 
+    public static LogMiningStrategy logMiningStrategy() {
+        if (ConnectorAdapter.LOG_MINER.equals(adapter())) {
+            // This won't catch all use cases where the user overrides the default configuration in the test
+            // itself but generally this should be satisfactory for marker annotations based on static or
+            // CLI provided configurations.
+            Configuration configuration = TestHelper.defaultConfig().build();
+            return LogMiningStrategy.parse(configuration.getString(OracleConnectorConfig.LOG_MINING_STRATEGY));
+        }
+        return null;
+    }
+
     /**
      * Drops all tables visible to user {@link #SCHEMA_USER}.
      */
@@ -543,13 +577,37 @@ public class TestHelper {
         try (OracleConnection connection = testConnection()) {
             connection.query("SELECT TABLE_NAME FROM USER_TABLES", rs -> {
                 while (rs.next()) {
-                    dropTable(connection, SCHEMA_USER + "." + rs.getString(1));
+                    // Oracle normally stores tables in upper case; however, if a table is created using
+                    // special characters, it must be quoted and therefore is treated as case-sensitive,
+                    // which will require quotes. This checks this specific use case and quotes the name
+                    // of the table if necessary.
+                    String tableName = rs.getString(1);
+                    if (isQuoteRequired(tableName)) {
+                        tableName = "\"" + tableName + "\"";
+                    }
+                    dropTable(connection, String.format("%s.%s", SCHEMA_USER, tableName));
                 }
             });
         }
         catch (SQLException e) {
             throw new RuntimeException("Failed to clean database", e);
         }
+    }
+
+    public static boolean isQuoteRequired(String tableName) {
+        if (!Strings.isNullOrBlank(tableName)) {
+            // Make sure table isn't already quoted
+            if (!tableName.startsWith("\"") && !tableName.endsWith("\"")) {
+                for (int i = 0; i < tableName.length(); i++) {
+                    final char c = tableName.charAt(i);
+                    // If we detect any lower case character or non letter/digit, name must be quoted
+                    if (Character.isLowerCase(c) || !Character.isLetterOrDigit(c)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public static List<BigInteger> getCurrentRedoLogSequences() throws SQLException {
@@ -565,20 +623,18 @@ public class TestHelper {
     }
 
     public static String getDefaultInfinispanEmbeddedCacheConfig(String cacheName) {
-        final String result = new org.infinispan.configuration.cache.ConfigurationBuilder()
+        return new org.infinispan.configuration.cache.ConfigurationBuilder()
                 .persistence()
                 .passivation(false)
                 .addSoftIndexFileStore()
                 .segmented(true)
                 .preload(true)
                 .shared(false)
-                .fetchPersistentState(true)
                 .ignoreModifications(false)
                 .dataLocation("./target/data")
                 .indexLocation("./target/data")
                 .build()
-                .toXMLString(cacheName);
-        return result;
+                .toStringConfiguration(cacheName);
     }
 
     public static String getDefaultInfinispanRemoteCacheConfig(String cacheName) {
@@ -684,61 +740,9 @@ public class TestHelper {
                 : connectionConfiguration.getString(PDB_NAME);
         return connectionConfiguration.edit()
                 .with(JdbcConfiguration.HOSTNAME.name(), "localhost")
-                .with(JdbcConfiguration.PORT, RestExtensionTestInfrastructure.getOracleContainer().getMappedPort(OracleContainer.ORACLE_PORT))
+                .with(JdbcConfiguration.PORT, TestInfrastructureHelper.getOracleContainer().getMappedPort(OracleContainer.ORACLE_PORT))
                 .with(JdbcConfiguration.DATABASE, dbName)
                 .build();
-    }
-
-    // expects user passed in the config to be any local user account on the Oracle DB instance
-    private static OracleConnection createConnection(ConnectorConfiguration config, boolean autoCommit) {
-        Configuration connectionConfiguration = getTestConnectionConfiguration(config);
-        OracleConnection connection = new OracleConnection(JdbcConfiguration.adapt(connectionConfiguration));
-        try {
-            connection.setAutoCommit(autoCommit);
-            return connection;
-        }
-        catch (SQLException e) {
-            throw new RuntimeException("Failed to create connection", e);
-        }
-    }
-
-    // Will only work for SQL files that use ";" as ending of an SQL statement, other ";" can't be used in the SQL code
-    private static String[] getResourceSqlFileContent(String file) {
-        try (var is = DebeziumOracleConnectorResourceIT.class.getClassLoader().getResourceAsStream(file)) {
-            if (null == is) {
-                throw new IllegalArgumentException("File not found. (" + file + ")");
-            }
-            try (
-                    var streamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
-                    var reader = new BufferedReader(streamReader)) {
-                List<String> sqlStatements = new ArrayList<>();
-                var sb = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (line.endsWith(";")) {
-                        sb.append(line, 0, line.length() - 1);
-                        sqlStatements.add(sb.toString());
-                        sb = new StringBuilder();
-                    }
-                    else {
-                        sb.append(line).append(" ");
-                    }
-                }
-                return sqlStatements.toArray(new String[0]);
-            }
-        }
-        catch (IOException e) {
-            throw new DebeziumException(e);
-        }
-    }
-
-    public static void loadTestData(ConnectorConfiguration config, String sqlFile) {
-        try (var conn = TestHelper.createConnection(config, false)) {
-            conn.execute(getResourceSqlFileContent(sqlFile));
-        }
-        catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private static void patchConnectorConfigurationForContainer(ConnectorConfiguration connectorConfiguration, OracleContainer oracleContainer) {
@@ -770,22 +774,11 @@ public class TestHelper {
         }
     }
 
-    public static ConnectorConfiguration getOracleConnectorConfiguration(int id, String... options) {
-        OracleContainer oracleContainer = RestExtensionTestInfrastructure.getOracleContainer();
-        final ConnectorConfiguration config = ConnectorConfiguration.forJdbcContainer(oracleContainer)
-                .with(OracleConnectorConfig.PDB_NAME.name(), oracleContainer.ORACLE_PDB_NAME)
-                .with(OracleConnectorConfig.DATABASE_NAME.name(), oracleContainer.ORACLE_DBNAME)
-                .with(OracleConnectorConfig.TOPIC_PREFIX.name(), "dbserver" + id)
-                .with(KafkaSchemaHistory.BOOTSTRAP_SERVERS.name(), RestExtensionTestInfrastructure.KAFKA_HOSTNAME + ":9092")
-                .with(KafkaSchemaHistory.TOPIC.name(), "dbhistory.oracle");
-
-        if (options != null && options.length > 0) {
-            for (int i = 0; i < options.length; i += 2) {
-                config.with(options[i], options[i + 1]);
-            }
+    public static long getUndoRetentionSeconds() throws SQLException {
+        try (OracleConnection admin = adminConnection(false)) {
+            return admin.queryAndMap(
+                    "SELECT VALUE from V$PARAMETER WHERE NAME = 'undo_retention'",
+                    admin.singleResultMapper(rs -> rs.getLong(1), "Failed to get undo retention parameter"));
         }
-
-        patchConnectorConfigurationForContainer(config, oracleContainer);
-        return config;
     }
 }

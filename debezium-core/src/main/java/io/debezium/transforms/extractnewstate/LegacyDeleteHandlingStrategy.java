@@ -5,6 +5,8 @@
  */
 package io.debezium.transforms.extractnewstate;
 
+import static io.debezium.util.Loggings.maybeRedactSensitiveData;
+
 import org.apache.kafka.connect.connector.ConnectRecord;
 import org.apache.kafka.connect.data.Struct;
 import org.slf4j.Logger;
@@ -25,7 +27,8 @@ public class LegacyDeleteHandlingStrategy<R extends ConnectRecord<R>> extends Ab
     private final DeleteHandling deleteHandling;
     private final boolean dropTombstones;
 
-    public LegacyDeleteHandlingStrategy(DeleteHandling deleteHandling, boolean dropTombstones) {
+    public LegacyDeleteHandlingStrategy(DeleteHandling deleteHandling, boolean dropTombstones, boolean replaceNullWithDefault) {
+        super(replaceNullWithDefault);
         this.deleteHandling = deleteHandling;
         this.dropTombstones = dropTombstones;
     }
@@ -33,7 +36,7 @@ public class LegacyDeleteHandlingStrategy<R extends ConnectRecord<R>> extends Ab
     @Override
     public R handleTombstoneRecord(R record) {
         if (dropTombstones) {
-            LOGGER.trace("Tombstone {} arrived and requested to be dropped", record.key());
+            LOGGER.trace("Tombstone {} arrived and requested to be dropped", maybeRedactSensitiveData(record.key()));
             return null;
         }
         return record;
@@ -43,7 +46,7 @@ public class LegacyDeleteHandlingStrategy<R extends ConnectRecord<R>> extends Ab
     public R handleDeleteRecord(R record) {
         switch (deleteHandling) {
             case DROP:
-                LOGGER.trace("Delete message {} requested to be dropped", record.key());
+                LOGGER.trace("Delete message {} requested to be dropped", maybeRedactSensitiveData(record.key()));
                 return null;
             case NONE:
                 // NOTE
@@ -52,7 +55,7 @@ public class LegacyDeleteHandlingStrategy<R extends ConnectRecord<R>> extends Ab
                 // Any change to this behavior can have impact on JDBC connector.
                 return afterDelegate.apply(record);
             case REWRITE:
-                LOGGER.trace("Delete message {} requested to be rewritten", record.key());
+                LOGGER.trace("Delete message {} requested to be rewritten", maybeRedactSensitiveData(record.key()));
                 R oldRecord = beforeDelegate.apply(record);
                 // need to add the rewrite "__deleted" field manually since mongodb's value is a string type
                 if (oldRecord.value() instanceof Struct) {
@@ -68,7 +71,7 @@ public class LegacyDeleteHandlingStrategy<R extends ConnectRecord<R>> extends Ab
     public R handleRecord(R record) {
         R newRecord = afterDelegate.apply(record);
         if (deleteHandling == DeleteHandling.REWRITE) {
-            LOGGER.trace("Insert/update message {} requested to be rewritten", record.key());
+            LOGGER.trace("Insert/update message {} requested to be rewritten", maybeRedactSensitiveData(record.key()));
             // need to add the rewrite "__deleted" field manually since mongodb's value is a string type
             if (newRecord.value() instanceof Struct) {
                 return updatedDelegate.apply(newRecord);

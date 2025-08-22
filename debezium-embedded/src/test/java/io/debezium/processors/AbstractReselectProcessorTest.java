@@ -20,7 +20,8 @@ import io.debezium.config.Configuration;
 import io.debezium.data.Envelope;
 import io.debezium.data.VerifyRecord;
 import io.debezium.doc.FixFor;
-import io.debezium.embedded.AbstractConnectorTest;
+import io.debezium.embedded.async.AbstractAsyncEngineConnectorTest;
+import io.debezium.embedded.async.AsyncEmbeddedEngine;
 import io.debezium.jdbc.JdbcConnection;
 import io.debezium.junit.logging.LogInterceptor;
 import io.debezium.processors.reselect.ReselectColumnsPostProcessor;
@@ -30,7 +31,7 @@ import ch.qos.logback.classic.Level;
 /**
  * @author Chris Cranford
  */
-public abstract class AbstractReselectProcessorTest<T extends SourceConnector> extends AbstractConnectorTest {
+public abstract class AbstractReselectProcessorTest<T extends SourceConnector> extends AbstractAsyncEngineConnectorTest {
 
     protected abstract Class<T> getConnectorClass();
 
@@ -72,8 +73,7 @@ public abstract class AbstractReselectProcessorTest<T extends SourceConnector> e
     @FixFor("DBZ-4321")
     @SuppressWarnings("resource")
     public void testNoColumnsReselectedWhenNullAndUnavailableColumnsAreDisabled() throws Exception {
-        LogInterceptor interceptor = new LogInterceptor(ReselectColumnsPostProcessor.class);
-        interceptor.setLoggerLevel(ReselectColumnsPostProcessor.class, Level.DEBUG);
+        LogInterceptor interceptor = getReselectLogInterceptor();
 
         databaseConnection().execute(getInsertWithNullValue());
 
@@ -108,8 +108,7 @@ public abstract class AbstractReselectProcessorTest<T extends SourceConnector> e
     @FixFor("DBZ-4321")
     @SuppressWarnings("resource")
     public void testNoColumnsReselectedWhenNotNullSnapshot() throws Exception {
-        LogInterceptor interceptor = new LogInterceptor(ReselectColumnsPostProcessor.class);
-        interceptor.setLoggerLevel(ReselectColumnsPostProcessor.class, Level.DEBUG);
+        LogInterceptor interceptor = getReselectLogInterceptor();
 
         databaseConnection().execute(getInsertWithValue());
 
@@ -144,8 +143,7 @@ public abstract class AbstractReselectProcessorTest<T extends SourceConnector> e
     public void testNoColumnsReselectedWhenNotNullStreaming() throws Exception {
         enableTableForCdc();
 
-        LogInterceptor interceptor = new LogInterceptor(ReselectColumnsPostProcessor.class);
-        interceptor.setLoggerLevel(ReselectColumnsPostProcessor.class, Level.DEBUG);
+        LogInterceptor interceptor = getReselectLogInterceptor();
 
         Configuration config = getConfigurationBuilder()
                 .with("reselector.reselect.columns.include.list", reselectColumnsList())
@@ -263,6 +261,27 @@ public abstract class AbstractReselectProcessorTest<T extends SourceConnector> e
         assertThat(after.get(fieldName("data2"))).isEqualTo(1);
     }
 
+    @Test
+    @FixFor("DBZ-8901")
+    public void shouldThrowAnExceptionWhenConfigurationAreNotProvided() throws Exception {
+
+        final LogInterceptor logInterceptor = new LogInterceptor(AsyncEmbeddedEngine.class);
+        logInterceptor.setLoggerLevel(AsyncEmbeddedEngine.class, Level.ERROR);
+
+        enableTableForCdc();
+
+        Configuration config = getConfigurationBuilder()
+                .without("reselector.type")
+                .build();
+
+        start(getConnectorClass(), config);
+
+        assertThat(logInterceptor.containsStacktraceElement("Post processor 'reselector' is missing 'reselector.type' and/or 'reselector.<option>' configurations"))
+                .isTrue();
+
+        assertConnectorNotRunning();
+    }
+
     protected SourceRecords consumeRecordsByTopicReselectWhenNotNullSnapshot() throws InterruptedException {
         return consumeRecordsByTopic(1);
     }
@@ -284,6 +303,20 @@ public abstract class AbstractReselectProcessorTest<T extends SourceConnector> e
     }
 
     protected void enableTableForCdc() throws Exception {
+    }
+
+    protected LogInterceptor getReselectLogInterceptor() {
+        final LogInterceptor logInterceptor = new LogInterceptor(ReselectColumnsPostProcessor.class);
+        logInterceptor.setLoggerLevel(ReselectColumnsPostProcessor.class, Level.DEBUG);
+        return logInterceptor;
+    }
+
+    protected void assertColumnReselectedForUnavailableValue(LogInterceptor interceptor, String tableName, String columnName) {
+        assertThat(interceptor.containsMessage(String.format(
+                "Adding column %s for table %s to re-select list due to unavailable value placeholder.",
+                columnName,
+                tableName)))
+                .isTrue();
     }
 
 }

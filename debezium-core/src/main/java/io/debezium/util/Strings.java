@@ -1070,6 +1070,29 @@ public final class Strings {
     }
 
     /**
+     * Checks if the value is empty or null, returning the default value if true, otherwise the specified value.
+     *
+     * @param value the string to check
+     * @param defaultValue the default value to return
+     * @return value if not empty or null; default value otherwise
+     */
+    public static String defaultIfEmpty(String value, String defaultValue) {
+        return isNullOrEmpty(value) ? defaultValue : value;
+    }
+
+    /**
+     * Checks if the value is blank (i.e. it's blank or only contains whitespace characters) or null, returning
+     * the default value if true, otherwise returning the specified value.
+     *
+     * @param value the string to check
+     * @param defaultValue the default value to return
+     * @return value if not blank or null; default value otherwise
+     */
+    public static String defaultIfBlank(String value, String defaultValue) {
+        return isNullOrBlank(value) ? defaultValue : value;
+    }
+
+    /**
      * Check if the string contains only digits.
      *
      * @param str the string to check
@@ -1229,5 +1252,42 @@ public final class Strings {
             }
             tokens.addToken(input.position(tokenStart), tokenStart, input.index() + 1);
         }
+    }
+
+    /**
+     * Converts a string with separators (e.g., dots, underscores) into camelCase format using Stream API.
+     *
+     * @param input the input string containing separators such as dots or underscores
+     * @return the converted string in camelCase format, or an empty string if the input is null or empty
+     */
+    public static String convertDotAndUnderscoreStringToCamelCase(String input) {
+        if (input == null || input.isEmpty()) {
+            return "";
+        }
+
+        String[] words = input.split("[._]+");
+        if (words.length == 0) {
+            return ""; // Handle edge case where input contains only separators
+        }
+
+        return java.util.stream.IntStream.range(0, words.length)
+                .filter(i -> !words[i].isEmpty()) // Skip empty segments caused by consecutive separators
+                .mapToObj(i -> i == 0
+                        ? words[i].toLowerCase() // Ensure the first word starts with lowercase
+                        : capitalizeFirstLetter(words[i])) // Capitalize the first letter of subsequent words
+                .collect(java.util.stream.Collectors.joining());
+    }
+
+    /**
+     * Capitalizes the first letter of a word and converts the rest to lowercase.
+     *
+     * @param word the word to capitalize
+     * @return the word with the first letter capitalized
+     */
+    private static String capitalizeFirstLetter(String word) {
+        if (word.isEmpty()) {
+            return "";
+        }
+        return Character.toUpperCase(word.charAt(0)) + word.substring(1).toLowerCase();
     }
 }

@@ -8,19 +8,14 @@ package io.debezium.connector.postgresql;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.management.ManagementFactory;
-import java.time.Duration;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
 
 import org.awaitility.Awaitility;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -28,15 +23,15 @@ import org.slf4j.LoggerFactory;
 
 import io.debezium.config.Configuration;
 import io.debezium.connector.postgresql.PostgresConnectorConfig.SnapshotMode;
-import io.debezium.doc.FixFor;
 import io.debezium.junit.EqualityCheck;
 import io.debezium.junit.SkipWhenJavaVersion;
-import io.debezium.util.Testing;
+import io.debezium.pipeline.AbstractMetricsTest;
 
 /**
  * @author Chris Cranford
+ * @author Mario Fiore Vitale
  */
-public class PostgresMetricsIT extends AbstractRecordsProducerTest {
+public class PostgresMetricsIT extends AbstractMetricsTest<PostgresConnector> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PostgresMetricsIT.class);
 
@@ -158,105 +153,63 @@ public class PostgresMetricsIT extends AbstractRecordsProducerTest {
 
         assertSnapshotNotExecutedMetrics();
         assertStreamingMetrics();
+    @Override
+    protected Class<PostgresConnector> getConnectorClass() {
+        return PostgresConnector.class;
     }
 
-    private void assertSnapshotMetrics() throws Exception {
-        final MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-
-        // Wait for the snapshot to complete to verify metrics
-        waitForSnapshotToBeCompleted();
-
-        // Check snapshot metrics
-        assertThat(mBeanServer.getAttribute(getSnapshotMetricsObjectName(), "TotalTableCount")).isEqualTo(1);
-        assertThat(mBeanServer.getAttribute(getSnapshotMetricsObjectName(), "CapturedTables")).isEqualTo(new String[]{ "public.simple" });
-        assertThat(mBeanServer.getAttribute(getSnapshotMetricsObjectName(), "TotalNumberOfEventsSeen")).isEqualTo(2L);
-        assertThat(mBeanServer.getAttribute(getSnapshotMetricsObjectName(), "RemainingTableCount")).isEqualTo(0);
-        assertThat(mBeanServer.getAttribute(getSnapshotMetricsObjectName(), "SnapshotRunning")).isEqualTo(false);
-        assertThat(mBeanServer.getAttribute(getSnapshotMetricsObjectName(), "SnapshotAborted")).isEqualTo(false);
-        assertThat(mBeanServer.getAttribute(getSnapshotMetricsObjectName(), "SnapshotCompleted")).isEqualTo(true);
-        assertThat(mBeanServer.getAttribute(getSnapshotMetricsObjectName(), "SnapshotPaused")).isEqualTo(false);
-        assertThat(mBeanServer.getAttribute(getSnapshotMetricsObjectName(), "SnapshotPausedDurationInSeconds")).isEqualTo(0L);
+    @Override
+    protected String connector() {
+        return "postgres";
     }
 
-    private void assertSnapshotWithCustomMetrics(Map<String, String> customMetricTags) throws Exception {
-        final MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-        final ObjectName objectName = getSnapshotMetricsObjectName("postgres", TestHelper.TEST_SERVER, customMetricTags);
-
-        // Wait for the snapshot to complete to verify metrics
-        waitForSnapshotWithCustomMetricsToBeCompleted(customMetricTags);
-
-        // Check snapshot metrics
-        assertThat(mBeanServer.getAttribute(objectName, "TotalTableCount")).isEqualTo(1);
-        assertThat(mBeanServer.getAttribute(objectName, "CapturedTables")).isEqualTo(new String[]{ "public.simple" });
-        assertThat(mBeanServer.getAttribute(objectName, "TotalNumberOfEventsSeen")).isEqualTo(2L);
-        assertThat(mBeanServer.getAttribute(objectName, "RemainingTableCount")).isEqualTo(0);
-        assertThat(mBeanServer.getAttribute(objectName, "SnapshotRunning")).isEqualTo(false);
-        assertThat(mBeanServer.getAttribute(objectName, "SnapshotAborted")).isEqualTo(false);
-        assertThat(mBeanServer.getAttribute(objectName, "SnapshotCompleted")).isEqualTo(true);
-        assertThat(mBeanServer.getAttribute(objectName, "SnapshotPaused")).isEqualTo(false);
-        assertThat(mBeanServer.getAttribute(objectName, "SnapshotPausedDurationInSeconds")).isEqualTo(0L);
+    @Override
+    protected String server() {
+        return "test_server";
     }
 
-    private void assertSnapshotNotExecutedMetrics() throws Exception {
-        final MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-
-        Awaitility.await("Waiting for snapshot metrics to appear").atMost(TestHelper.waitTimeForRecords(), TimeUnit.SECONDS).until(() -> {
-            try {
-                mBeanServer.getObjectInstance(getSnapshotMetricsObjectName());
-                return true;
-            }
-            catch (InstanceNotFoundException e) {
-                return false;
-            }
-        });
-
-        // Check snapshot metrics
-        assertThat(mBeanServer.getAttribute(getSnapshotMetricsObjectName(), "TotalTableCount")).isEqualTo(0);
-        assertThat(mBeanServer.getAttribute(getSnapshotMetricsObjectName(), "CapturedTables")).isEqualTo(new String[]{});
-        assertThat(mBeanServer.getAttribute(getSnapshotMetricsObjectName(), "TotalNumberOfEventsSeen")).isEqualTo(0L);
-        assertThat(mBeanServer.getAttribute(getSnapshotMetricsObjectName(), "RemainingTableCount")).isEqualTo(0);
-        assertThat(mBeanServer.getAttribute(getSnapshotMetricsObjectName(), "SnapshotRunning")).isEqualTo(false);
-        assertThat(mBeanServer.getAttribute(getSnapshotMetricsObjectName(), "SnapshotAborted")).isEqualTo(false);
-        assertThat(mBeanServer.getAttribute(getSnapshotMetricsObjectName(), "SnapshotCompleted")).isEqualTo(false);
+    @Override
+    protected Configuration.Builder config() {
+        return TestHelper.defaultConfig()
+                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.ALWAYS)
+                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE);
     }
 
-    private void assertStreamingMetrics() throws Exception {
-        final MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+    protected Configuration.Builder noSnapshot(Configuration.Builder config) {
+        return config.with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NO_DATA);
+    }
 
-        // Wait for the streaming to begin
-        TestConsumer consumer = testConsumer(2, "public");
-        waitForStreamingToStart();
-
-        // Insert new records and wait for them to become available
+    @Override
+    protected void executeInsertStatements() {
         TestHelper.execute(INSERT_STATEMENTS);
-        consumer.await(TestHelper.waitTimeForRecords() * 30L, TimeUnit.SECONDS);
-        Thread.sleep(Duration.ofSeconds(2).toMillis());
-
-        // Check streaming metrics
-        Testing.print("****ASSERTIONS****");
-        assertThat(mBeanServer.getAttribute(getStreamingMetricsObjectName(), "Connected")).isEqualTo(true);
-        assertThat(mBeanServer.getAttribute(getStreamingMetricsObjectName(), "TotalNumberOfEventsSeen")).isEqualTo(2L);
-        // todo: this does not seem to be populated?
-        // Assertions.assertThat(mBeanServer.getAttribute(getStreamingMetricsObjectName(), "CapturedTables")).isEqualTo(new String[] {"public.simple"});
     }
 
-    private void assertStreamingWithCustomMetrics(Map<String, String> customMetricTags) throws Exception {
-        final MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-        final ObjectName objectName = getStreamingMetricsObjectName("postgres", TestHelper.TEST_SERVER, customMetricTags);
+    @Override
+    protected String tableName() {
+        return "public.simple";
+    }
 
-        // Wait for the streaming to begin
-        TestConsumer consumer = testConsumer(2, "public");
-        waitForStreamingWithCustomMetricsToStart(customMetricTags);
+    @Override
+    protected long expectedEvents() {
+        return 2L;
+    }
 
-        // Insert new records and wait for them to become available
-        TestHelper.execute(INSERT_STATEMENTS);
-        consumer.await(TestHelper.waitTimeForRecords() * 30L, TimeUnit.SECONDS);
-        Thread.sleep(Duration.ofSeconds(2).toMillis());
+    @Override
+    protected boolean snapshotCompleted() {
+        return false;
+    }
 
-        // Check streaming metrics
-        Testing.print("****ASSERTIONS****");
-        assertThat(mBeanServer.getAttribute(objectName, "Connected")).isEqualTo(true);
-        assertThat(mBeanServer.getAttribute(objectName, "TotalNumberOfEventsSeen")).isEqualTo(2L);
+    @Before
+    public void before() throws Exception {
+        TestHelper.dropDefaultReplicationSlot();
+        TestHelper.dropAllSchemas();
+
+        TestHelper.execute(INIT_STATEMENTS);
+    }
+
+    @After
+    public void after() throws Exception {
+        stopConnector();
     }
 
     @Test
@@ -264,12 +217,12 @@ public class PostgresMetricsIT extends AbstractRecordsProducerTest {
     public void oneRecordInQueue() throws Exception {
         // Testing.Print.enable();
         final MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-        TestHelper.execute(INIT_STATEMENTS, INSERT_STATEMENTS);
+        executeInsertStatements();
         final CountDownLatch step1 = new CountDownLatch(1);
         final CountDownLatch step2 = new CountDownLatch(1);
 
         Configuration.Builder configBuilder = TestHelper.defaultConfig()
-                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NEVER)
+                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NO_DATA)
                 .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
                 .with(PostgresConnectorConfig.MAX_QUEUE_SIZE, 10)
                 .with(PostgresConnectorConfig.MAX_BATCH_SIZE, 1)
@@ -287,8 +240,8 @@ public class PostgresMetricsIT extends AbstractRecordsProducerTest {
             LOGGER.info("Record processing completed");
         }, true);
 
-        waitForStreamingToStart();
-        TestHelper.execute(INSERT_STATEMENTS);
+        waitForStreamingRunning(connector(), server());
+        executeInsertStatements();
         LOGGER.info("Waiting for the first record to arrive");
         step1.await(TestHelper.waitTimeForRecords() * 5, TimeUnit.SECONDS);
         LOGGER.info("First record arrived");
@@ -336,11 +289,4 @@ public class PostgresMetricsIT extends AbstractRecordsProducerTest {
         stopConnector();
     }
 
-    private ObjectName getSnapshotMetricsObjectName() throws MalformedObjectNameException {
-        return getSnapshotMetricsObjectName("postgres", TestHelper.TEST_SERVER);
-    }
-
-    private ObjectName getStreamingMetricsObjectName() throws MalformedObjectNameException {
-        return getStreamingMetricsObjectName("postgres", TestHelper.TEST_SERVER);
-    }
 }

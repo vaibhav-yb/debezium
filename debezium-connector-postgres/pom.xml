@@ -3,7 +3,7 @@
     <parent>
         <groupId>io.debezium</groupId>
         <artifactId>debezium-parent</artifactId>
-        <version>dz.2.5.2.yb.2024.1-SNAPSHOT</version>
+        <version>dz.3.1.3.yb.2024.2-SNAPSHOT</version>
         <relativePath>../debezium-parent/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -22,6 +22,12 @@
         <postgres.user>yugabyte</postgres.user>
         <postgres.password>yugabyte</postgres.password>
         <postgres.db.name>yugabyte</postgres.db.name>
+        <version.postgres.server>17</version.postgres.server>
+        <postgres.host>${docker.host.address}</postgres.host>
+        <postgres.port>5432</postgres.port>
+        <postgres.user>postgres</postgres.user>
+        <postgres.password>postgres</postgres.password>
+        <postgres.db.name>postgres</postgres.db.name>
         <postgres.encoding>UTF8</postgres.encoding>
         <postgres.system.lang>en_US.utf8</postgres.system.lang>
 <!--        <postgres.image>quay.io/debezium/postgres:${version.postgres.server}</postgres.image>-->
@@ -40,6 +46,7 @@
         <!-- Apicurion container properties -->
         <apicurio.port>8080</apicurio.port>
         <apicurio.init.timeout>60000</apicurio.init.timeout> <!-- 60 seconds -->
+        <apicurio.image>quay.io/apicurio/apicurio-registry-mem</apicurio.image>
     </properties>
 
     <dependencies>
@@ -63,6 +70,11 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>connect-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>connect-transforms</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -153,6 +165,16 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry.javaagent</groupId>
+            <artifactId>opentelemetry-testing-common</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry.javaagent</groupId>
+            <artifactId>opentelemetry-agent-for-testing</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -313,7 +335,7 @@
                             </external>
                         </image>
                         <image>
-                            <name>apicurio/apicurio-registry-mem:${version.apicurio}</name>
+                            <name>${apicurio.image}:${version.apicurio}</name>
                             <run>
                                 <namingStrategy>none</namingStrategy>
                                 <ports>
@@ -389,6 +411,7 @@
                         <plugin.name>${decoder.plugin.name}</plugin.name>
                         <skipLongRunningTests>${skipLongRunningTests}</skipLongRunningTests>
                     </systemPropertyVariables>
+                    <argLine>-javaagent:"${settings.localRepository}/@{opentelemetry.agent.for.testing.artifact.relative.path}" -Dio.opentelemetry.javaagent.slf4j.simpleLogger.defaultLogLevel=off</argLine>
                     <runOrder>${runOrder}</runOrder>
                 </configuration>
             </plugin>
@@ -550,6 +573,12 @@
             </properties>
         </profile>
         <profile>
+            <id>postgres-12</id>
+            <properties>
+                <version.postgres.server>12</version.postgres.server>
+            </properties>
+        </profile>
+        <profile>
             <id>postgres-14</id>
             <properties>
                 <version.postgres.server>14</version.postgres.server>
@@ -565,6 +594,12 @@
             <id>postgres-16</id>
             <properties>
                 <version.postgres.server>16</version.postgres.server>
+            </properties>
+        </profile>
+        <profile>
+            <id>postgres-17</id>
+            <properties>
+                <version.postgres.server>17</version.postgres.server>
             </properties>
         </profile>
         <profile>
@@ -602,7 +637,7 @@
                 </plugins>
             </build>
             <properties>
-                <docker.filter>${docker.dbs},apicurio/apicurio-registry-mem:${version.apicurio}</docker.filter>
+                <docker.filter>${docker.dbs},${apicurio.image}:${version.apicurio}</docker.filter>
             </properties>
         </profile>
     </profiles>

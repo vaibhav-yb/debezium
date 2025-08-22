@@ -171,7 +171,11 @@ public class BaseSourceTaskTest {
         }
 
         @Override
+<<<<<<< HEAD
         protected void resetErrorHandlerRetriesIfNeeded() {
+=======
+        protected void resetErrorHandlerRetriesIfNeeded(List<SourceRecord> records) {
+>>>>>>> 3.1.3.Final
             // do nothing as we don't have a coordinator mocked
         }
 

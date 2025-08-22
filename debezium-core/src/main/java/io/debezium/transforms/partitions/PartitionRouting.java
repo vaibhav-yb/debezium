@@ -8,6 +8,7 @@ package io.debezium.transforms.partitions;
 import static io.debezium.data.Envelope.FieldName.AFTER;
 import static io.debezium.data.Envelope.FieldName.BEFORE;
 import static io.debezium.data.Envelope.FieldName.OPERATION;
+import static io.debezium.util.Loggings.maybeRedactSensitiveData;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.connect.components.Versioned;
 import org.apache.kafka.connect.connector.ConnectRecord;
 import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.errors.DataException;
@@ -26,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.debezium.DebeziumException;
+import io.debezium.Module;
 import io.debezium.config.Configuration;
 import io.debezium.config.EnumeratedValue;
 import io.debezium.config.Field;
@@ -39,7 +42,7 @@ import io.debezium.util.MurmurHash3;
  * @param <R> the subtype of {@link ConnectRecord} on which this transformation will operate
  * @author Mario Fiore Vitale
  */
-public class PartitionRouting<R extends ConnectRecord<R>> implements Transformation<R> {
+public class PartitionRouting<R extends ConnectRecord<R>> implements Transformation<R>, Versioned {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PartitionRouting.class);
     private static final MurmurHash3 MURMUR_HASH_3 = MurmurHash3.getInstance();
@@ -169,7 +172,7 @@ public class PartitionRouting<R extends ConnectRecord<R>> implements Transformat
                     .collect(Collectors.toList());
 
             if (fieldsValue.isEmpty()) {
-                LOGGER.trace("None of the configured fields found on record {}. Skipping it.", envelope);
+                LOGGER.trace("None of the configured fields found on record {}. Skipping it.", maybeRedactSensitiveData(envelope));
                 return originalRecord;
             }
 
@@ -197,7 +200,7 @@ public class PartitionRouting<R extends ConnectRecord<R>> implements Transformat
             return Optional.ofNullable(lastStruct.get(subFields[subFields.length - 1]));
         }
         catch (DataException e) {
-            LOGGER.trace("Field {} not found on payload {}. It will not be considered", fieldName, envelope);
+            LOGGER.trace("Field {} not found on payload {}. It will not be considered", fieldName, maybeRedactSensitiveData(envelope));
             return Optional.empty();
         }
 
@@ -225,7 +228,7 @@ public class PartitionRouting<R extends ConnectRecord<R>> implements Transformat
     }
 
     private R buildNewRecord(R originalRecord, Struct envelope, int partition) {
-        LOGGER.trace("Message {} will be sent to partition {}", envelope, partition);
+        LOGGER.trace("Message {} will be sent to partition {}", maybeRedactSensitiveData(envelope), partition);
 
         return originalRecord.newRecord(originalRecord.topic(), partition,
                 originalRecord.keySchema(),
@@ -249,5 +252,10 @@ public class PartitionRouting<R extends ConnectRecord<R>> implements Transformat
 
     @Override
     public void close() {
+    }
+
+    @Override
+    public String version() {
+        return Module.version();
     }
 }

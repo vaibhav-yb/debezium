@@ -94,8 +94,6 @@ public class QueryInformationSchemaMetadata extends AbstractTimescaleDbMetadata 
                             new TableId(null, rs.getString(3), rs.getString(4)));
                 }
             });
-
-            connection.close();
         }
         catch (SQLException e) {
             throw new DebeziumException("Failed to read TimescaleDB metadata", e);

@@ -7,6 +7,7 @@ Adam Strickland
 Addison Higham
 Adham
 Adrian Kreuziger
+Ahmed Bayraktar
 Ahmed Eljami
 Aidas
 Akshansh Jain
@@ -18,18 +19,24 @@ Alex Soto
 Alexander Iskuskov
 Alexander Kovryga
 Alexander Schwartz
+Alexandru Cristu
 Alexey Loubyansky
 Alexey Miroshnikov
 Alfusainey Jallow
 Alisa Houskova
+Alvar Viana
+Alvar Viana Gomez
+Amirmohammad Sadat Shokouhi
 Amit Sela
 Aman Garg
 Anatolii Popov
 Anders Engström
 Andrea Cosentino
+Andrea Peruffo
 Andreas Bergmeier
 Andreas Martens
 Andras Istvan Nagy
+Andrei Leibovski
 Andrew Garrett
 Andrew Tongen
 Andrew Walker
@@ -43,19 +50,26 @@ Angshuman Dey
 Anil Dasari
 Animesh Kumar
 Anisha Mohanty
+Ankur Gupta
 Ant Kutschera
 Anton Kondratev
 Anton Martynov
+Aravind Pedapudi
 Arik Cohen
+Aristofanis Lekkos
 Arkoprabho Chakraborti
 artiship
+Arthur Le Ray
 Artur Gukasian
 Ashhar Hasan
 Ashique Ansari
 Ashmeet Lamba
+Ashok Sudhakar
+Ashwin Murali Krishnan
 Attila Szucs
 Avinash Vishwakarma
 Aykut Farsak
+Aziza Kalmasova
 baabgai
 Babur Duisenov
 Balázs Németh
@@ -66,6 +80,8 @@ Bartosz Miedlar
 Ben Hardesty
 Ben Williams
 Bertrand Paquet
+Bhagyashree Goyal
+Bhumika Bayani
 Biel Garau Estarellas
 Bin Li
 Bingqin Zhou
@@ -80,6 +96,7 @@ Brandon Brown
 Brandon Maguire
 Brennan Vincent
 Breno Moreira
+Bue Von Hun
 Byron Ruth
 Camile Sing
 ccro
@@ -88,6 +105,8 @@ Cao Manh Dat
 Chad Marmon
 Chai Stofkoper
 Chao Tian
+Choi Jang Ho
+Chungeun Choi
 Calin Laurentiu Ilie
 Cheng Pan
 Ching Tsai
@@ -100,21 +119,27 @@ Chris Lee
 Chris Riccomini
 Christian Jacob Mencias
 Christian Posta
+Christian Seki
 Christian Stein
 Christopher Burch
 Christopher Sang
 Chuck Ha
+Ciaran O'Reilly
 Claus Guttesen
 Claus Ibsen
 Clément Loiselet
 Cliff Wheadon
+Cody Holmes
 Collin Van Dyck
 Connor Szczepaniak
 Cory Harper
 Cyprien Etienne
 Cyril Scetbon
+Daan Gerits
 Daan Roosen
 Daniel Petisme
+dario
+Dave Charron
 Dave Cramer
 Dave Cumberland
 David Beck
@@ -136,6 +161,7 @@ Derek Moore
 Dhrubajyoti G
 Dominique Chanet
 Dou Pengwei
+Duc Le Tu
 Duncan Sands
 Dushyant M
 Echo Xu
@@ -143,8 +169,10 @@ Ed Laur
 Eduardo Hayashi
 Eero Koplimets
 Egyed Tamas
+einar-rt
 Elan Hasson
 Eliran Agranovich
+Emil Lindström
 Emmanuel Brard
 Emre Akgün
 Emrul Islam
@@ -155,6 +183,7 @@ Eric Slep
 Eric Weaver
 Eric S. Kreiseir
 Erik Malm
+Eric Xiao
 Ethan Zou
 Eugene Abramchuk
 Ewen Cheslack-Postava
@@ -165,6 +194,7 @@ Fabio Cantarini
 Fahim Farook
 Fai Ho Fu
 Faizan
+Fan Yang
 Farid Uyar
 Fatih Güçlü Akkaya
 Fándly Gergő
@@ -172,9 +202,11 @@ Felix Eckhardt
 Fintan Bolton
 Frank Koornstra
 Frank Mormino
+Franz Emberger
 Frederic Laurent
 Gabor Andras
 Gagan Agrawal
+Ganesh Bankar
 Ganesh Ramasubramanian
 Giljae Joo
 Gilles Vaquez
@@ -182,10 +214,12 @@ Giovanni De Stefano
 Gong Chang Hua
 Govinda Sakhare
 Grant Cooksey
+Guangnan Shi
 Guillaume Rosauro
 Guillaume Smet
 Gunnar Morling
 Gurnaaz Randhawa
+Gustavo Lira
 Guy Korland
 Guy Pascarella
 Grzegorz Kołakowski
@@ -198,17 +232,25 @@ Jan Hendrik Dolling
 Jan Werner
 Jannik Steinmann
 Jason Schweier
+Jason Speck
 Jesse Ehrenzweig
 Jiabao Sun
 Jiri Kulhanek
+Jon Bruno
+Jonas Thelemann
 Jordan Pittier
 Juan Fiallo
+Juanma Barea
+Julien Roy
 Jun Zhao
 Hady Willi
 Hang Ruan
 Hans-Peter Grahsl
+Haris Bin Saif
+Haris Osmanagić
 Harvey Yue
 Helong Zhang
+Henk van Dyk
 Henrik Schnell
 Henry Cai
 Henryk Konsek
@@ -245,6 +287,7 @@ Jan Uyttenhove
 JapuDCret
 Jaromir Hamala
 Javier Holguera
+Jean Vintache
 Jeremy Finzel
 Jeremy Ford
 Jeremy Vigny
@@ -265,8 +308,10 @@ Jordan Bragg
 Jork Zijlstra
 Jorn Argelo
 Jos Huiting
+Jose Carvajal Hilario
 Jose Luis
 Jose Luis Sánchez
+Joseph Koshakow
 Josh Arenberg
 Josh Ribera
 Josh Stanfield
@@ -279,16 +324,22 @@ Justin Hiza
 Kanha Gupta
 Kanthi Subramanian
 Katerina Galieva
+Katsumi Miyajima
 Kaushik Iyer
 Kaustuv Chakrabarti
+Kavya Ramaiah
 Kazuki MATSUDA / 松田一樹
 Keith Barber
 Keri Harris
 Kevin Pullin
+Kevin Rothenberger
 Kewei Shang
 Kosta Kostelnik
 Krizhan Mariampillai
+Krzysztof Grzechnik
+Kunal Bhatnagar
 Kyley Jex
+kesompochy
 Lairen Hightower
 laoflch
 Lars M. Johansson
@@ -307,6 +358,7 @@ Lourens Naudé
 Luca Scannapieco
 Luis Garcés-Erice
 Lukas Krejci
+Lukas Langegger
 Lukasz Korzeniowski
 lyidataminr
 M Sazzadul Hoque
@@ -323,10 +375,17 @@ Mark Bereznitsky
 Mark Drilling
 Mark Ducommun
 Mark Lambert
+Markus Kull
+Micro Huang
 Martin Medek
 Martin Sillence
+Martin Tosney
+Martin Vlk
+Martin Walsh
 Masazumi Kobayashi
+Mathijs van den Worm
 Matt Beary
+Matt Hejnas
 Matt Vance
 Matteo Capitanio
 Mathieu Rozieres
@@ -337,8 +396,12 @@ Martín Pérez
 Mehmet Firat Komurcu
 Meng Qiu
 Melissa Winstanley
+Michael Cambria
 Michael Cizmar
+Michael Terranova
 Michael Wang
+Michal Augustýn
+Michal Pioun
 Mickael Maison
 Mickaël Isaert
 Mike Graham
@@ -346,13 +409,18 @@ Mike Kamornikov
 Mikhail Dubrovin
 Mincong Huang
 Ming Luo
+Minh Son Nguyen
+Minjae Lee
 Mohamed Pudukulathan
 Mohammad Yousuf Minhaj Zia
 Moira Tagle
+Mostafa Ghadimi
+moyq5
 Muhammad Sufyian
 My Lang Pangzi
 Nancy Xu
 Nansen
+Naresh Gandi
 Narz David
 Nathan Bradshaw
 Nathan Mills
@@ -364,12 +432,14 @@ Nenad Stojanovikj
 Nick Murray
 Niels Pardon
 Nikhil Benesch
+Nikolay Angelov
 Nils Hartmann
 Nir Levy
 Nishant Singh
 Nitin Agarwal
 Nitin Chhabra
 Olavi Mustanoja
+Ole-Martin Bratteng
 Oliver Weiler
 Olivier Boudet
 Olivier Jacquemart
@@ -380,7 +450,9 @@ Oren Elias
 Ori Popowski
 Orr Ganani
 Oscar Romero
+Oskar Bonde
 Oskar Polak
+P. Aum
 Patrick Chu
 Pavel Strashkin
 Paul Cheung
@@ -388,11 +460,15 @@ Paul Mellor
 Paul Tzen
 Paweł Malon
 Peng Lyu
+Petar Kostov
 Peter Goransson
 Peter Junos
 Peter Larsson
 Peter Urbanetz
 Philip Sanetra
+Philipp Bouzid
+Philippe Labat
+Piotr Piastucki
 Plugaru Tudor
 Poonam Meghnani
 Pradeep Mamillapalli
@@ -414,14 +490,19 @@ Raúl Tovar
 Renato Mefi
 René Kerner
 Robert Hana
+Robin Moffatt
+Rodolphe Quiedeville
 Roman Kuchar
 Roman Kudryashov
 Rotem Adhoh
 Sagar Rao
 Sahan Dilshan
 Sahap Asci
+Sylvain Marty
 René Kerner
+Ricardo Rosales
 Rich O'Connell
+Richard Harrington
 Richard Kolkovich
 Robert Coup
 Robert Roldan
@@ -439,12 +520,19 @@ Saulius Valatka
 Sayed Mohammad Hossein Torabi
 Scofield Xu
 Sara Fonseca
+Sean C. Sullivan
 Sean Rooney
+Sean Wu
 Sebastiaan Knijnenburg
 Sebastian Bruckner
 Seo Jae-kwon
+Seongjoon Jeong
+Sergei Kazakov
 Sergei Morozov
 Sergey Eizner
+Sergey Ivanov
+Sergey Kazakov
+Sergey Seroshtan
 Shane Paul
 Shantanu Sharma
 Sherafudheen PM
@@ -456,9 +544,11 @@ Shuguang Xiang
 Shuran Zhang
 SiuFay
 Siddhant Agnihotry
+Stanislav Deviatov
 Stanley Shyiko
 Stavros Champilomatis
 Stathis Souris
+Stavros Champilomatis
 Stefan Miklosovic
 Stephen Powis
 Steven Siahetiong
@@ -467,6 +557,7 @@ Sun Xiao Jian
 Sungho Hwang
 Stein Rolevink
 Syed Muhammad Sufyian
+Sylvain Marty
 Tapani Moilanen
 Tautvydas Januskevicius
 Taylor Rolison
@@ -483,9 +574,12 @@ Thomas Thornton
 Tim Loes
 tisonkun
 Timo Roeseler
+Timo Schmidt
+Timo Wilhelm
 Tin Nguyen
 Tom Bentley
 Tom Billiet
+Tomasz Gawęda
 Tim Patterson
 Tomaz Lemos Fernandes
 Tommy Karlsson
@@ -499,10 +593,12 @@ Troy Gaines
 Tudor Plugaru
 V K
 Vadzim Ramanenka
+Vaibhav Kushwaha
 Vasily Ulianko
 Vedit Firat Arig
 Vincenzo Santonastaso
 Victar Malinouski
+Victor Castaño
 Victor Xiang
 Vivek Wassan
 Vladimir Osin
@@ -518,6 +614,7 @@ Willie Cheong
 Willie Zhu
 Wu Zhenhua
 Wout Scheepers
+Wouter Coekaerts
 Xiao Fu
 Xiaojian Sun
 Xiaolin Zhang
@@ -528,9 +625,11 @@ Xuan Shen
 Yang Wu
 Yang Yang
 Yanjie Wang
+Yannick Eisenschmidt
 yangrong688
 yangsanity
 Yashashree Chopada
+Yevhenii Lopatenko
 Yilong Chang
 Yiming Liu
 Yingying Tang
@@ -540,6 +639,8 @@ Yossi Shirizli
 Yuan Zhang
 Yue Wang
 Yuiham Chan
+Yuriy Vikulov
+Zakariae Ben Allal
 Zheng Wang
 Zongwen Li
 Zoran Regvart
@@ -553,8 +654,11 @@ Zoran Regvart
 Snigdhajyoti Ghosh
 Andrei Isac
 M. Gökhan Akgül
+Maithem
 Mark Allanson
+Mark Banierink
 Rahul Khanna
+Razvan Laurus
 Ronak Jain
 Pengwei Dou
 Zhongqiang Gong
@@ -575,6 +679,7 @@ Massimo Fortunat
 Vincenzo Santonastaso
 Matan Cohen
 Don Seiler
+Dongwook Chan
 Ahmed Rachid Hazourli
 Pavithrananda Prabhu
 حمود سمبول
@@ -582,3 +687,15 @@ Peter Hamer
 Artem Shubovych
 leoloel
 Clifford Cheefoon
+Fr0z3Nn
+Xianming Zhou
+Akula
+Nick Golubev
+Selman Genç
+Pradeep Nain
+Gaurav Miglani
+张展业
+Ashish Binu
+Mohamed El Shaer
+Artyom Dubinin
+Giovanni Panice
